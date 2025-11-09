@@ -1,0 +1,119 @@
+<!-- Back/templates/core/formulario_auditoria.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Formulário de Auditoria - {{ auditoria.norma.codigo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h4 mb-0">Auditoria: {{ auditoria.titulo }}</h1>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm">← Voltar ao Dashboard</a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Norma: {{ auditoria.norma.nome }}</h5>
+            <small class="text-muted">Total de requisitos: {{ requisitos.count }}</small>
+        </div>
+        <div class="card-body">
+            <form id="auditoriaForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="auditoria_id" value="{{ auditoria.id }}">
+
+                {% for requisito in requisitos %}
+                    {% with item=itens_dict|get_item:requisito.id %}
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <strong>{{ requisito.codigo }} — {{ requisito.titulo }}</strong>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">{{ requisito.descricao }}</p>
+
+                            <!-- Status de avaliação -->
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Avaliação</strong></label>
+                                <select 
+                                    name="status_{{ requisito.id }}" 
+                                    class="form-select status-select" 
+                                    data-requisito-id="{{ requisito.id }}"
+                                >
+                                    <option value="">Selecione...</option>
+                                    <option value="conforme" {% if item.status_avaliacao == 'conforme' %}selected{% endif %}>
+                                        Em conformidade (requer evidência)
+                                    </option>
+                                    <option value="nao_conforme" {% if item.status_avaliacao == 'nao_conforme' %}selected{% endif %}>
+                                        Não conforme
+                                    </option>
+                                </select>
+                            </div>
+
+                            <!-- Upload de evidência (aparece só se "conforme") -->
+                            <div class="mb-3 evidencia-group" id="evidencia-group-{{ requisito.id }}" style="{% if item.status_avaliacao != 'conforme' %}display: none;{% endif %}">
+                                <label class="form-label">Evidência (PDF, PNG, JPG, XLSX até 30MB)</label>
+                                <input 
+                                    type="file" 
+                                    name="evidencia_{{ requisito.id }}" 
+                                    class="form-control"
+                                    accept=".pdf,.png,.jpg,.jpeg,.xlsx"
+                                >
+                                <!-- Exibir evidência já carregada -->
+                                {% if item.evidencia %}
+                                    <div class="mt-2">
+                                        <small class="text-success">
+                                            <i class="fas fa-file"></i> 
+                                            Evidência atual: <a href="{{ item.evidencia.url }}" target="_blank">{{ item.evidencia.name|truncatechars:30 }}</a>
+                                            ({{ item.tamanho_evidencia|filesizeformat }})
+                                        </small>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Comentário -->
+                            <div class="mb-3">
+                                <label class="form-label">Comentário</label>
+                                <textarea 
+                                    name="comentario_{{ requisito.id }}" 
+                                    class="form-control" 
+                                    rows="2"
+                                >{{ item.comentario|default_if_none:"" }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    {% endwith %}
+                {% endfor %}
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-primary">Salvar Avaliações</button>
+                    <a href="{% url 'relatorio_pdf' auditoria.id %}" class="btn btn-outline-primary" target="_blank">
+                        <i class="fas fa-file-pdf"></i> Gerar Relatório PDF
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mostrar/ocultar campo de upload com base na seleção
+    document.querySelectorAll('.status-select').forEach(select => {
+        const requisitoId = select.dataset.requisitoId;
+        const evidenciaGroup = document.getElementById(`evidencia-group-${requisitoId}`);
+        
+        select.addEventListener('change', function() {
+            if (this.value === 'conforme') {
+                evidenciaGroup.style.display = 'block';
+            } else {
+                evidenciaGroup.style.display = 'none';
+                // Limpar campo de arquivo (não é possível alterar .value diretamente por segurança)
+                const fileInput = evidenciaGroup.querySelector('input[type="file"]');
+                if (fileInput) fileInput.value = '';
+            }
+        });
+    });
+});
+</script>
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+{% endblock %}

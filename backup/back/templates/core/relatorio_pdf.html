@@ -1,0 +1,52 @@
+<!-- Back/templates/core/relatorio_pdf.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Relatório de Auditoria - {{ auditoria.norma.codigo }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .header { text-align: center; border-bottom: 2px solid #2c3e50; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { color: #2c3e50; margin: 0; }
+        .metrics { display: flex; justify-content: space-around; margin: 30px 0; }
+        .metric-box { text-align: center; padding: 15px; border-radius: 8px; width: 30%; }
+        .conforme { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .nao-conforme { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .metric-value { font-size: 24px; font-weight: bold; margin: 10px 0; }
+        .footer { margin-top: 40px; text-align: right; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Relatório de Autoauditoria</h1>
+        <p>{{ auditoria.norma.codigo }} - {{ auditoria.norma.nome }}</p>
+    </div>
+
+    <h2>{{ auditoria.titulo }}</h2>
+    <p><strong>Auditor:</strong> {{ auditoria.usuario.get_full_name }}</p>
+    <p><strong>Data de início:</strong> {{ auditoria.data_inicio|date:"d/m/Y" }}</p>
+
+    <div class="metrics">
+        <div class="metric-box conforme">
+            <h3>Em Conformidade</h3>
+            <div class="metric-value">{{ conformes }}</div>
+            <p>({{ percentual_conformes }}%)</p>
+        </div>
+        <div class="metric-box nao-conforme">
+            <h3>Não Conforme</h3>
+            <div class="metric-value">{{ nao_conformes }}</div>
+            <p>({{ 100 - percentual_conformes }}%)</p>
+        </div>
+        <div class="metric-box">
+            <h3>Total de Itens</h3>
+            <div class="metric-value">{{ total }}</div>
+            <p>100%</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Relatório gerado automaticamente em {{ data_geracao }}</p>
+        <p>Sistema de Autoauditoria ISO/IEC 27034</p>
+    </div>
+</body>
+</html>
