@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Questionário ISO</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="questionario fade-in">
+    <h1 id="tituloISO">Questionário</h1>
+    <p class="lead" id="descricaoISO"></p>
+
+    <form id="formQuestionario">
+      <label for="textoResposta">Descreva suas observações:</label>
+      <textarea id="textoResposta" rows="6" placeholder="Digite aqui..." required></textarea>
+
+      <label for="arquivo">Anexar arquivo:</label>
+      <input type="file" id="arquivo" multiple>
+
+      <div class="form-buttons">
+        <button type="submit" class="btn">Salvar</button>
+        <button type="button" class="btn secondary" id="voltar">Voltar ao Painel</button>
+      </div>
+    </form>
+
+    <div id="resultado" class="success" style="display:none; margin-top:16px;"></div>
+  </div>
+
+  <!-- Script externo -->
+  <script src="questionario.js"></script>
+</body>
+</html>

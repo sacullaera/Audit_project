@@ -1,0 +1,206 @@
+<!-- templates/core/dashboard.html -->
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Dashboard - Autoauditoria{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Dashboard de Conformidade</h1>
+        <div class="text-muted small">{{ hoje|date:"d/m/Y" }}</div>
+    </div>
+
+    <!-- Cards de Resumo -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Auditorias Totais
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_auditorias|intcomma }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Conformes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_conformes|intcomma }}
+                                <span class="text-xs text-muted">({{ percentual_conformes }}%)</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Não Conformes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_nao_conformes|intcomma }}
+                                <span class="text-xs text-muted">({{ percentual_nao_conformes }}%)</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Pendentes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ requisitos_pendentes|intcomma }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-hourglass-half fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Conformidade -->
+    <div class="row mb-4">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Conformidade por Norma ISO</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-bar">
+                        <canvas id="conformityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auditorias Recentes -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Auditorias Recentes</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for auditoria in auditorias_recentes %}
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ auditoria.titulo|truncatechars:30 }}</h6>
+                                <small class="text-muted">{{ auditoria.data_inicio|date:"d/m/Y" }}</small>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="badge {% if auditoria.status == 'concluida' %}badge-success
+                                    {% elif auditoria.status == 'em_andamento' %}badge-warning
+                                    {% else %}badge-secondary{% endif %}">
+                                    {{ auditoria.get_status_display }}
+                                </span>
+                                <small class="text-muted">{{ auditoria.norma.codigo }}</small>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <div class="text-center py-3">
+                            <p class="text-muted mb-0">Nenhuma auditoria recente encontrada.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('conformityChart').getContext('2d');
+        
+        // Dados do backend para o gráfico
+        const normasData = {{ normas_data|safe }};
+        
+        const normas = normasData.map(item => item.nome);
+        const conformes = normasData.map(item => item.conformes);
+        const naoConformes = normasData.map(item => item.nao_conformes);
+        
+        new Chart(ctx, {
+            type: 'bar',
+             {
+                labels: normas,
+                datasets: [
+                    {
+                        label: 'Conformes',
+                         conformes,
+                        backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Não Conformes',
+                         naoConformes,
+                        backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: false
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

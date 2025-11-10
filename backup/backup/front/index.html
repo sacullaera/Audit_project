@@ -1,0 +1,43 @@
+<!-- Estrutura de arquivos separados -->
+<!-- index.html -->
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Proj-N2 — Login (HTML/CSS/JS)</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="card" id="card">
+        <div id="step-login" class="fade-in">
+          <div class="brand">
+            <div class="logo">FA</div>
+            <div>
+              <h1>FATEC — Portal de Acesso</h1>
+              <p class="lead">Entre com seu usuário e senha para continuar.</p>
+            </div>
+          </div>
+          <form id="loginForm" autocomplete="on">
+            <div><label for="username">Nome de usuário</label><input id="username" name="username" class="input" type="text" placeholder="ex: danilo.souza" required minlength="3" /></div>
+            <div style="position:relative;"><label for="password">Senha</label><input id="password" name="password" class="input" type="password" placeholder="Sua senha" required minlength="6" /><button type="button" id="togglePwd" title="Mostrar senha" class="showpwd">Mostrar</button></div>
+            <div class="remember"><label><input type="checkbox" id="remember" /> Lembrar de mim </label><a href="#" id="forgot">Esqueci a senha</a></div>
+            <div class="buttons"><button class="btn" id="submitBtn" type="submit">Entrar</button><button class="btn secondary" id="demoBtn" type="button">Entrar como demo</button></div>
+            <div id="feedback" aria-live="polite"></div>
+            <div class="helper">Este é um protótipo que roda apenas no navegador. As credenciais não são enviadas a servidores.</div>
+          </form>
+        </div>
+        <div id="step-next" style="display:none" class="fade-in">
+          <div class="next">
+            <h1>Login bem-sucedido</h1>
+            <p class="lead">Bem-vindo! Agora você pode prosseguir para as próximas etapas.</p>
+            <div class="buttons"><button class="btn" id="continueBtn">Continuar</button><button class="btn secondary" id="logoutBtn">Sair</button></div>
+            <p id="nextHint" class="small">(Quando você me disser as próximas etapas, eu as implementarei aqui.)</p>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>
