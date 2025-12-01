@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Questionário — ISO/IEC 27034</title>
+    <link rel="stylesheet" href="{% static 'questionario.css' %}">
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <h2>Índice — ISO/IEC 27034</h2>
+            <ul id="indiceNorma">
+                {% for r in requisitos %}
+                <li class="indice-item" data-id="{{ r.id }}">{{ r.secao }}</li>
+                {% endfor %}
+            </ul>
+        </aside>
+        <main class="conteudo">
+            <div id="secaoContainer" class="fade">
+                <h1 id="tituloSecao">Selecione uma pergunta</h1>
+                <div id="conteudoSecao">
+                    <p>Escolha um item à esquerda.</p>
+                </div>
+                <div class="navegacao">
+                    <button class="btn secondary" onclick="window.location.href='/dashboard/'">◀ Voltar ao Painel</button>
+                    <button id="btnSalvar" class="saveBtn" style="display:none;">💾 Salvar Resposta</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const requisitos = {{ requisitos_json|safe }};
+
+        function mostrarPergunta(id) {
+            const req = requisitos.find(r => r.id == id);
+            if (!req) return;
+
+            document.getElementById('tituloSecao').textContent = req.secao;
+            document.getElementById('conteudoSecao').innerHTML = `
+                <p><strong>Pergunta:</strong> ${req.pergunta_texto}</p>
+                <div style="margin-top:15px;">
+                    <label>Conformidade:</label>
+                    <select id="conformidade">
+                        <option value="ATENDE">Atende</option>
+                        <option value="PARCIAL">Atende parcialmente</option>
+                        <option value="NAO_ATENDE">Não atende</option>
+                        <option value="NAO_SE_APLICA">Não se aplica</option>
+                    </select>
+                </div>
+                <div style="margin-top:10px;">
+                    <label>Observações:</label>
+                    <textarea id="observacoes" rows="4" style="width:100%;"></textarea>
+                </div>
+                <div style="margin-top:10px;">
+                    <label>Anexar evidência (opcional):</label>
+                    <input type="file" id="arquivo">
+                </div>
+            `;
+            document.getElementById('btnSalvar').style.display = 'inline-block';
+            document.getElementById('btnSalvar').onclick = () => salvarResposta(id);
+        }
+
+        function salvarResposta(id) {
+            const formData = new FormData();
+            formData.append('conformidade', document.getElementById('conformidade').value);
+            formData.append('observacoes', document.getElementById('observacoes').value);
+            const arquivo = document.getElementById('arquivo').files[0];
+            if (arquivo) formData.append('arquivo', arquivo);
+            formData.append('requisito_id', id);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            fetch('/salvar-resposta/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) alert('✅ Resposta salva com sucesso!');
+                else alert('❌ Erro: ' + data.erro);
+            });
+        }
+
+        // Ativa cliques na sidebar
+        document.querySelectorAll('.indice-item').forEach(li => {
+            li.addEventListener('click', () => {
+                mostrarPergunta(li.dataset.id);
+            });
+        });
+    </script>
+</body>
+</html>
